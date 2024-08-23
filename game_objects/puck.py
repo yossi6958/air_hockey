@@ -107,18 +107,18 @@ class Puck:
         self.angle = 0
         self.speed = 0
 
-    def reset(self, speed, player):
+    def reset(self, player):
         if player == 1:
             self.angle = rand.uniform(-math.pi, 0)
         elif player == 2:
             self.angle = rand.uniform(0, math.pi)
-        self.speed = speed
+        self.speed = SPEED
         self.x = WIDTH / 2
         self.y = HEIGHT / 2
 
-    def end_reset(self, speed):
+    def end_reset(self):
         self.angle = 0
-        self.speed = speed
+        self.speed = SPEED
         self.x = WIDTH / 2
         self.y = HEIGHT / 2
 

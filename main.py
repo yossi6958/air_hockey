@@ -4,6 +4,7 @@ from pygame.locals import *
 
 from game_objects.paddle import Paddle
 from game_objects.puck import Puck
+from game_objects.timer import GameTimer
 from screens.endScreen import game_end
 from screens.startScreen import air_hockey_start, disp_text
 from screens.themeScreen import theme_screen
@@ -18,10 +19,12 @@ puck = Puck(width / 2, height / 2)
 
 
 def init():
-    global paddleHit, goal_whistle, clock, screen, smallfont, roundfont, smallerfont
+    global paddleHit, goal_whistle, clock, screen, smallfont, roundfont, smallerfont, timer, mute
+
     pygame.mixer.pre_init(44100, -16, 2, 2048)
     pygame.mixer.init()
     pygame.init()
+    mute = False  # to keep state of mute
 
     gamelogo = pygame.image.load(os.path.join(auxDirectory, 'AHlogo.png'))
     pygame.display.set_icon(gamelogo)
@@ -35,6 +38,10 @@ def init():
     smallerfont = pygame.font.SysFont("comicsans", 20)
     roundfont = pygame.font.SysFont("comicsans", 45)
 
+    # Initialize the timer
+    timer = GameTimer(TIMER_DURATION)
+    timer.reset()  # Start the timer
+
     clock = pygame.time.Clock()
 
 
@@ -47,25 +54,19 @@ def score(score1, score2, player_1_name, player_2_name):
 
 
 def rounds(rounds_p1, rounds_p2, round_no):
-    disp_text(screen, "Round " + str(round_no), (width / 2, 20), smallfont, BLACK)
-    disp_text(screen, str(rounds_p1) + " : " + str(rounds_p2), (width / 2, 50), smallfont, BLACK)
+    disp_text(screen, "Round " + str(round_no), (width / 2 + 100, 20), smallfont, BLACK)
+    disp_text(screen, str(rounds_p1) + " : " + str(rounds_p2), (width / 2 + 100, 50), smallfont, BLACK)
 
 
-def end(option, speed):
-    global rounds_p1, rounds_p2, round_no, score1, score2
-
-    # reset game with everything else same
+def end(option):
+    # restart game
     if option == 1:
-        puck.end_reset(speed)
-        paddle1.reset(22, height / 2)
-        paddle2.reset(width - 20, height / 2)
-        score1, score2 = 0, 0
-        rounds_p1, rounds_p2 = 0, 0
-        round_no = 1
+        reset_all_details()
         return False  # Tells that game should continue with reset
 
     # goes to menu
     elif option == 2:
+        reset_all_details()
         return True  # Game should restart at startScreen
 
     # Quit game
@@ -74,12 +75,17 @@ def end(option, speed):
 
 
 def notify_round_change():
+    global timer
+
+    timer.pause()
+
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_SPACE:
+                    timer.resume()
                     return
         round_text = roundfont.render("ROUND {0} COMPLETE".format(round_no), True, colors[2][0])
         screen.blit(round_text, [width / 2 - 150, height / 2 - 50])
@@ -95,6 +101,7 @@ def notify_round_change():
         if (mouse[0] > x) and (mouse[0] < x + 150) and (mouse[1] > y) and (mouse[1] < y + 40):
             pygame.draw.rect(screen, colors[4][1], (x, y, 150, 40))
             if click[0] == 1:
+                timer.resume()
                 return
         else:
             pygame.draw.rect(screen, colors[4][0], (x, y, 150, 40))
@@ -114,7 +121,6 @@ def notify_round_change():
 
 
 def show_pause_screen():
-    global mute, music_paused
     """
         Shows the pause screen,
         This function will return,
@@ -122,6 +128,9 @@ def show_pause_screen():
         1 if the game is to be continued
         and exit here itself if exit is pressed
     """
+    global mute, music_paused, timer
+
+    timer.pause()
 
     while True:
         text_pause = smallfont.render("PAUSED", True, BLACK)
@@ -136,7 +145,7 @@ def show_pause_screen():
                 (mouse[1] < height - 160):
             pygame.draw.rect(screen, colors[4][0], (width / 4, height - 200, 150, 40))
             if click[0] == 1:
-                return 2
+                return 1
         else:
             pygame.draw.rect(screen, colors[4][1], (width / 4, height - 200, 150, 40))
         text_restart = smallerfont.render("RESET", True, WHITE)
@@ -147,35 +156,35 @@ def show_pause_screen():
                 (mouse[1] < height - 160):
             pygame.draw.rect(screen, colors[0][0], (width / 2 - 70, height - 200, 150, 40))
             if click[0] == 1:
-                return 1
+                timer.resume()
+                return 2
         else:
             pygame.draw.rect(screen, colors[0][1], (width / 2 - 70, height - 200, 150, 40))
         text_cont = smallerfont.render("CONTINUE", True, WHITE)
         screen.blit(text_cont, [width / 2 - 60, height - 195])
 
-        # EXIT
+        # MENU
         if (mouse[0] > width / 2 + 150) and (mouse[0] < width / 2 + 300) and (mouse[1] > height - 200) and \
                 (mouse[1] < height - 160):
             pygame.draw.rect(screen, colors[1][0], (width / 2 + 150, height - 200, 150, 40))
             if click[0] == 1:
-                pygame.quit()
-                sys.exit()
+                return 3
         else:
             pygame.draw.rect(screen, colors[1][1], (width / 2 + 150, height - 200, 150, 40))
-        text_exit = smallerfont.render("EXIT", True, WHITE)
+        text_exit = smallerfont.render("MENU", True, WHITE)
         screen.blit(text_exit, [width / 2 + 190, height - 195])
 
         # Look for mouse press events.
         events = pygame.event.get()
         for event in events:
-            # removing pause using space
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                return 1
+                timer.resume()
+                return 2
 
-            # continue by pressing play button as well
             if event.type == pygame.MOUSEBUTTONUP:
-                if hits_pause_area(mouse):
-                    return 1
+                if hits_pause_area(pygame.mouse.get_pos()):
+                    timer.resume()
+                    return 2
 
             if event.type == QUIT:
                 sys.exit()
@@ -240,8 +249,8 @@ def resetround(player):
     paddle2.reset(width - 20, height / 2)
 
 
-def reset_game(speed, player):
-    puck.reset(speed, player)
+def reset_game(player):
+    puck.reset(player)
     paddle1.reset(22, height / 2)
     paddle2.reset(width - 20, height / 2)
 
@@ -255,9 +264,44 @@ def inside_goal(side):
         return (puck.x + puck.radius >= width) and (puck.y >= GOAL_Y1) and (puck.y <= GOAL_Y2)
 
 
+def reset_all_details():
+    global rounds_p1, rounds_p2, round_no, score1, score2, timer
+
+    timer.reset()
+
+    score1 = 0
+    score2 = 0
+    rounds_p1 = 0
+    rounds_p2 = 0
+    round_no = 1
+
+    # Reset game objects
+    reset_game(1)
+    reset_game(2)
+
+    # Reset puck state
+    puck.reset(1)
+    puck.angle = 0
+
+
+def determine_winner():
+    if rounds_p2 > rounds_p1:
+        winner = player_2_name
+    elif rounds_p1 > rounds_p2:
+        winner = player_1_name
+    else:
+        if score2 > score1:
+            winner = player_2_name
+        elif score1 > score2:
+            winner = player_1_name
+        else:
+            winner = "Draw"
+    return winner
+
+
 # Game Loop
-def game_loop(speed, player1_color, player2_color, background_color, player_1_name, player_2_name):
-    global rounds_p1, rounds_p2, round_no, music_paused
+def game_loop(player1_color, player2_color, background_color, player_1_name, player_2_name):
+    global rounds_p1, rounds_p2, round_no, music_paused, timer
     rounds_p1, rounds_p2, round_no = 0, 0, 1
 
     pygame.mixer.music.load(os.path.join(auxDirectory, 'back.mp3'))  # Background music
@@ -271,21 +315,21 @@ def game_loop(speed, player1_color, player2_color, background_color, player_1_na
         pygame.mixer.music.pause()
         music_paused = True
 
+    # Start the timer
+    timer.start()
+
     while True:
         global score1, score2
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 ch = show_pause_screen()
-                if ch == 2:  # Reset everything
-                    score1 = 0
-                    score2 = 0
-                    rounds_p1 = 0
-                    rounds_p2 = 0
-                    round_no = 1
-                    reset_game(speed, 1)
-                    reset_game(speed, 2)
-                    puck.angle = 0
+                if ch == 1:  # Reset everything
+                    reset_all_details()
+
+                elif ch == 3:  # Back to Menu
+                    reset_all_details()
+                    return
 
             if event.type == QUIT:
                 pygame.quit()
@@ -295,15 +339,12 @@ def game_loop(speed, player1_color, player2_color, background_color, player_1_na
                 mouse_xy = pygame.mouse.get_pos()
                 if hits_pause_area(mouse_xy):
                     ch = show_pause_screen()
-                    if ch == 2:  # Reset everything
-                        score1 = 0
-                        score2 = 0
-                        rounds_p1 = 0
-                        rounds_p2 = 0
-                        round_no = 1
-                        reset_game(speed, 1)
-                        reset_game(speed, 2)
-                        puck.angle = 0
+                    if ch == 1:  # Reset everything
+                        reset_all_details()
+
+                    elif ch == 3:  # Back to Menu
+                        reset_all_details()
+                        return
 
         key_presses = pygame.key.get_pressed()
 
@@ -336,13 +377,13 @@ def game_loop(speed, player1_color, player2_color, background_color, player_1_na
             if not music_paused:
                 pygame.mixer.Sound.play(goal_whistle)
             score2 += 1
-            reset_game(speed, 1)
+            reset_game(1)
 
         if inside_goal(1):
             if not music_paused:
                 pygame.mixer.Sound.play(goal_whistle)
             score1 += 1
-            reset_game(speed, 2)
+            reset_game(2)
 
         # Check puck collisions
         puck.check_boundary(width, height)
@@ -373,21 +414,30 @@ def game_loop(speed, player1_color, player2_color, background_color, player_1_na
         # Draw game elements
         render_field(background_color)
         score(score1, score2, player_1_name, player_2_name)
+        timer.draw(screen, smallfont)
 
         if rounds_p1 == ROUND_LIMIT:
-            if end(game_end(screen, clock, background_color, player_1_name), speed):
+            if end(game_end(screen, clock, background_color, player_1_name)):
                 if music_paused:
                     pygame.mixer.music.unpause()
                 pygame.mixer.stop()
                 return
         elif rounds_p2 == ROUND_LIMIT:
-            if end(game_end(screen, clock, background_color, player_2_name), speed):
+            if end(game_end(screen, clock, background_color, player_2_name)):
                 if music_paused:
                     pygame.mixer.music.unpause()
                 pygame.mixer.stop()
                 return
         else:
             rounds(rounds_p1, rounds_p2, round_no)
+
+        if timer.get_remaining_time() <= 0:
+            winner = determine_winner()
+            if end(game_end(screen, clock, background_color, winner)):
+                if music_paused:
+                    pygame.mixer.music.unpause()
+                pygame.mixer.stop()
+                return
 
         # Draw paddles and puck
         paddle1.draw(screen, player1_color)
@@ -400,19 +450,12 @@ def game_loop(speed, player1_color, player2_color, background_color, player_1_na
 
 
 if __name__ == "__main__":
-    global mute
-    mute = False  # to keep state of mute
+    global mute, clock, screen
+
     init()
     while True:
-        gameChoice, player1_color, player2_color, mute, player_1_name, player_2_name = air_hockey_start(
+        player1_color, player2_color, mute, player_1_name, player_2_name = air_hockey_start(
             screen, clock, width, height, mute)
         background_color = theme_screen(screen, clock, width, height, mute)
         init()
-        if gameChoice == 1:
-            puck.speed = EASY
-            game_loop(EASY, player1_color, player2_color, background_color, player_1_name, player_2_name)
-        elif gameChoice == 2:
-            puck.speed = HARD
-            game_loop(HARD, player1_color, player2_color, background_color, player_1_name, player_2_name)
-        elif gameChoice == 0:
-            sys.exit()
+        game_loop(player1_color, player2_color, background_color, player_1_name, player_2_name)

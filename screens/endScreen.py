@@ -41,8 +41,12 @@ def game_end(screen: pygame.Surface, clock: pygame.time.Clock, background_color:
                 sys.exit()
 
         # Display which player won
-        disp_text(screen, f"{player_name.upper()} WINS", (width / 2, height / 2 - 150), celeb_text,
-                  colors[color_x][color_y])
+        if player_name.upper() == "DRAW":
+            disp_text(screen, player_name.upper(), (width / 2, height / 2 - 150), celeb_text,
+                      colors[color_x][color_y])
+        else:
+            disp_text(screen, f"{player_name.upper()} WINS", (width / 2, height / 2 - 150), celeb_text,
+                      colors[color_x][color_y])
 
         # Drawing buttons for reset, menu, and exit
         # Reset button

@@ -13,6 +13,7 @@ score1, score2 = 0, 0
 paddleHit = None
 goal_whistle = None
 backgroundMusic = None
+mute = False
 
 # image for mute and unmute
 mute_image = pygame.image.load(os.path.join(auxDirectory, 'mute.png'))
@@ -26,6 +27,9 @@ info_image = pygame.image.load(os.path.join(auxDirectory, "info.png"))
 # game globals.
 clock = None
 screen = None
+
+# timer globals
+timer = None
 
 # width and height of the screen.
 width, height = WIDTH, HEIGHT

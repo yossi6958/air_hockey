@@ -82,7 +82,7 @@ def show_info(screen, scr_width, clock):
 
         line = other_text.render("CONTROLS:-", True, WHITE)
         screen.blit(line, (130, 130))
-        line = other_text.render("PLAYER 1 :- W,A,S,D     PLAYER 2 :- Arrow keys", True, WHITE)
+        line = other_text.render("PLAYER 1 :- Arrow keys     PLAYER 2 :- Mouse", True, WHITE)
         screen.blit(line, (290, 170))
 
         line = other_text.render("1. Click on player 1 or player 2 to enter name.", True, WHITE)
@@ -197,7 +197,7 @@ def air_hockey_start(screen, clock, scr_width, scr_height, mute):
         small_text = pygame.font.Font('freesansbold.ttf', 30)
         color_x = random.randint(0, 4)
         color_y = random.randint(0, 1)
-        disp_text(screen, "AIR HOCKEY", (scr_width / 2, 100), celeb_text, colors[color_x][color_y])
+        disp_text(screen, "AIR HOCKEY", (scr_width / 2, 100), large_text, colors[color_x][color_y])
 
         # mute and unmute audio code
         if mute and (not music_paused):
@@ -270,10 +270,10 @@ def air_hockey_start(screen, clock, scr_width, scr_height, mute):
         disp_text(screen, "Color selected", (scr_width - scr_width / 4 - 20, y_pos_rect_left + 120),
                   small_text, player2_color)
 
-        # difficulty button 'Easy'
-        if abs(mouse[0] - 200) < buttonRadius and abs(mouse[1] - 470) < buttonRadius:
-            button_circle(screen, colors[0][0], (200, 470), "Easy", large_text, (255, 255, 255),
-                          (scr_width / 2 - 400, scr_height / 2 + 170))
+        # Start Game
+        if abs(mouse[0] - 450) < buttonRadius and abs(mouse[1] - 470) < buttonRadius:
+            button_circle(screen, colors[4][1], (450, 470), "Continue", large_text, (255, 255, 255),
+                          (scr_width / 2 - 150, scr_height / 2 + 170))
             if click[0] == 1:
                 if music_paused:
                     pygame.mixer.music.unpause()
@@ -282,40 +282,22 @@ def air_hockey_start(screen, clock, scr_width, scr_height, mute):
                     player_1_name = "Player 1"
                 if player_2_name == "":
                     player_2_name = "Player 2"
-                return 1, player1_color, player2_color, mute, player_1_name, player_2_name
+                return player1_color, player2_color, mute, player_1_name, player_2_name
 
         else:
-            button_circle(screen, colors[0][0], (200, 470), "Easy", small_text, (255, 255, 255),
-                          (scr_width / 2 - 400, scr_height / 2 + 170))
-
-        # difficulty button 'Hard'
-        if abs(mouse[0] - 600) < buttonRadius and abs(mouse[1] - 470) < buttonRadius:
-            button_circle(screen, colors[4][1], (600, 470), "Hard", large_text, (255, 255, 255),
-                          (scr_width / 2, scr_height / 2 + 170))
-            if click[0] == 1:
-                if music_paused:
-                    pygame.mixer.music.unpause()
-                pygame.mixer.music.stop()
-                if player_1_name == "":
-                    player_1_name = "Player 1"
-                if player_2_name == "":
-                    player_2_name = "Player 2"
-                return 2, player1_color, player2_color, mute, player_1_name, player_2_name
-
-        else:
-            button_circle(screen, colors[4][1], (600, 470), "Hard", small_text, (255, 255, 255),
-                          (scr_width / 2, scr_height / 2 + 170))
+            button_circle(screen, colors[4][1], (450, 470), "Continue", small_text, (255, 255, 255),
+                          (scr_width / 2 - 150, scr_height / 2 + 170))
 
         # quit button
-        if abs(mouse[0] - 1000) < buttonRadius and abs(mouse[1] - 470) < buttonRadius:
-            button_circle(screen, colors[1][1], (1000, 470), "Quit", large_text, (255, 255, 255),
-                          (scr_width / 2 + 400, scr_height / 2 + 170))
+        if abs(mouse[0] - 700) < buttonRadius and abs(mouse[1] - 470) < buttonRadius:
+            button_circle(screen, colors[1][1], (700, 470), "Quit", large_text, (255, 255, 255),
+                          (scr_width / 2 + 100, scr_height / 2 + 170))
             if click[0] == 1:
                 pygame.quit()
                 sys.exit()
         else:
-            button_circle(screen, colors[1][0], (1000, 470), "Quit", small_text, (255, 255, 255),
-                          (scr_width / 2 + 400, scr_height / 2 + 170))
+            button_circle(screen, colors[1][0], (700, 470), "Quit", small_text, (255, 255, 255),
+                          (scr_width / 2 + 100, scr_height / 2 + 170))
 
         # info button
         screen.blit(info_image, (40, 20))
@@ -357,7 +339,7 @@ def air_hockey_start(screen, clock, scr_width, scr_height, mute):
 
                     color_x = random.randint(0, 4)
                     color_y = random.randint(0, 1)
-                    disp_text(screen, "AIR HOCKEY", (scr_width / 2, 100), celeb_text, colors[color_x][color_y])
+                    disp_text(screen, "AIR HOCKEY", (scr_width / 2, 100), large_text, colors[color_x][color_y])
 
                     # blink
                     if blink:
@@ -410,7 +392,7 @@ def air_hockey_start(screen, clock, scr_width, scr_height, mute):
 
                     color_x = random.randint(0, 4)
                     color_y = random.randint(0, 1)
-                    disp_text(screen, "AIR HOCKEY", (scr_width / 2, 100), celeb_text, colors[color_x][color_y])
+                    disp_text(screen, "AIR HOCKEY", (scr_width / 2, 100), large_text, colors[color_x][color_y])
 
                     # blink
                     if blink:

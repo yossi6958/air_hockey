@@ -30,16 +30,16 @@ GOAL_Y1 = HEIGHT / 2 - GOAL_WIDTH / 2
 GOAL_Y2 = HEIGHT / 2 + GOAL_WIDTH / 2
 
 # Speed levels
-EASY = 450
-MEDIUM = 650
-HARD = 850
+SPEED = 850
+
+TIMER_DURATION = 150
 
 # color
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # Scoring
-SCORE_LIMIT = 5
+SCORE_LIMIT = 3
 ROUND_LIMIT = 2
 
 # Environment
